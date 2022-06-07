@@ -23,10 +23,8 @@ public class ControllerConfiguration {
 	public CommandLineRunner commandLineRunner(SharedInformerFactory sharedInformerFactory,
 			Controller spreadsheetController) {
 		return args -> {
-			System.out.println("starting informers..");
-			sharedInformerFactory.startAllRegisteredInformers();
 
-			System.out.println("running controller..");
+			sharedInformerFactory.startAllRegisteredInformers();
 			spreadsheetController.run();
 		};
 	}
@@ -50,11 +48,9 @@ public class ControllerConfiguration {
 
 	@Bean
 	public SharedIndexInformer<V1alpha1Spreadsheet> spreadsheetSharedIndexInformer(ApiClient apiClient,
-			SharedInformerFactory sharedInformerFactory) {
-		GenericKubernetesApi<V1alpha1Spreadsheet, V1alpha1SpreadsheetList> genericApi = new GenericKubernetesApi<>(
-				V1alpha1Spreadsheet.class, V1alpha1SpreadsheetList.class, "sbp.vmware.jp", "v1alpha1", "spreadsheet",
-				apiClient);
-		return sharedInformerFactory.sharedIndexInformerFor(genericApi, V1alpha1Spreadsheet.class, 0);
+			SharedInformerFactory sharedInformerFactory,
+			GenericKubernetesApi<V1alpha1Spreadsheet, V1alpha1SpreadsheetList> spreadsheetApi) {
+		return sharedInformerFactory.sharedIndexInformerFor(spreadsheetApi, V1alpha1Spreadsheet.class, 0);
 	}
 
 }

@@ -6,7 +6,6 @@ import io.kubernetes.client.extended.controller.reconciler.Result;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.cache.Lister;
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
 import io.kubernetes.client.util.generic.KubernetesApiResponse;
 import jp.vmware.sbp.kubereport.controller.spring.clients.Aggregator;
@@ -14,7 +13,6 @@ import jp.vmware.sbp.kubereport.controller.spring.clients.Formatter;
 import jp.vmware.sbp.kubereport.controller.spring.models.V1alpha1Spreadsheet;
 import jp.vmware.sbp.kubereport.controller.spring.models.V1alpha1SpreadsheetList;
 import jp.vmware.sbp.kubereport.controller.spring.models.V1alpha1SpreadsheetStatus;
-import jp.vmware.sbp.kubereport.controller.spring.models.V1alpha1SpreadsheetStatusAggregated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -27,20 +25,21 @@ public class SpreadsheetReconciler implements Reconciler {
 
 	private final SharedInformer<V1alpha1Spreadsheet> spreadsheetSharedInformer;
 
+	private final GenericKubernetesApi<V1alpha1Spreadsheet, V1alpha1SpreadsheetList> spreadsheetApi;
+
 	private final Lister<V1alpha1Spreadsheet> spreadsheetLister;
 
 	private final Aggregator aggregator;
 
 	private final Formatter formatter;
 
-	private final ApiClient api;
-
 	public SpreadsheetReconciler(SharedIndexInformer<V1alpha1Spreadsheet> spreadsheetSharedInformer,
-			Aggregator aggregator, Formatter formatter, ApiClient apiClient) {
+			GenericKubernetesApi<V1alpha1Spreadsheet, V1alpha1SpreadsheetList> spreadsheetApi, Aggregator aggregator,
+			Formatter formatter) {
 		this.spreadsheetSharedInformer = spreadsheetSharedInformer;
+		this.spreadsheetApi = spreadsheetApi;
 		this.aggregator = aggregator;
 		this.formatter = formatter;
-		this.api = apiClient;
 		this.spreadsheetLister = new Lister<>(spreadsheetSharedInformer.getIndexer());
 	}
 
@@ -61,49 +60,38 @@ public class SpreadsheetReconciler implements Reconciler {
 		Map<String, String> aggeregated;
 
 		V1alpha1Spreadsheet spreadsheet = spreadsheetLister.get(namespace + "/" + name);
-		V1alpha1SpreadsheetStatus spreadsheetStatus = spreadsheet.getStatus();
-		V1alpha1SpreadsheetStatusAggregated statusAggregated = spreadsheetStatus.getAggregated();
+		try {
+			V1alpha1SpreadsheetStatus spreadsheetStatus = spreadsheet.getStatus();
 
-		GenericKubernetesApi<V1alpha1Spreadsheet, V1alpha1SpreadsheetList> status = new GenericKubernetesApi<>(
-				V1alpha1Spreadsheet.class, V1alpha1SpreadsheetList.class, "sbp.vmware.jp", "v1alpha1", "spreadsheet",
-				api);
+			spreadsheetStatus.setFriendlyDescription("Reconciling");
 
-		spreadsheetStatus.setFriendlyDescription("Reconciling");
+			logger.info("Starting aggregation call");
+			aggeregated = aggregator.exec(spreadsheet);
 
-		logger.info("Starting aggregation call");
-		aggeregated = aggregator.exec(spreadsheet.getSpec(), statusAggregated);
+			if (Objects.equals(spreadsheet.getStatus().getAggregated().getSuccess(), "false")) {
+				spreadsheetStatus.setFriendlyDescription("Reconcile Failed");
+				logger.warn("Reconcile Failed : " + spreadsheet.getStatus().getAggregated().getError());
+				return new Result(true);
+			}
 
-		if (Objects.equals(spreadsheet.getStatus().getAggregated().getSuccess(), "false")) {
-			spreadsheetStatus.setFriendlyDescription("Reconcile Failed");
-			logger.warn("Reconcile Failed : " + spreadsheet.getStatus().getAggregated().getError());
-			KubernetesApiResponse<V1alpha1Spreadsheet> update = status.updateStatus(spreadsheet,
+			logger.info("Starting formatter call");
+			formatter.exec(spreadsheet, aggeregated);
+
+			if (Objects.equals(spreadsheet.getStatus().getFormatted().getSuccess(), "false")) {
+				spreadsheetStatus.setFriendlyDescription("Reconcile Failed");
+				logger.warn("Reconcile Failed : " + spreadsheet.getStatus().getFormatted().getError());
+				return new Result(true);
+			}
+			spreadsheet.getStatus().setFriendlyDescription("Reconcile Succeded");
+			logger.info("Reconcile Succeeded");
+
+		}
+		finally {
+			KubernetesApiResponse<V1alpha1Spreadsheet> update = spreadsheetApi.updateStatus(spreadsheet,
 					V1alpha1Spreadsheet::getStatus);
 			if (!update.isSuccess()) {
 				logger.warn("Failed to update status");
 			}
-			return new Result(true);
-		}
-
-		logger.info("Starting formatter call");
-		formatter.exec(spreadsheet, aggeregated);
-
-		if (Objects.equals(spreadsheet.getStatus().getFormatted().getSuccess(), "false")) {
-			spreadsheetStatus.setFriendlyDescription("Reconcile Failed");
-			logger.warn("Reconcile Failed : " + spreadsheet.getStatus().getFormatted().getError());
-			KubernetesApiResponse<V1alpha1Spreadsheet> update = status.updateStatus(spreadsheet,
-					V1alpha1Spreadsheet::getStatus);
-			if (!update.isSuccess()) {
-				logger.warn("Failed to update status");
-			}
-			return new Result(true);
-		}
-
-		spreadsheet.getStatus().setFriendlyDescription("Reconcile Succeded");
-		logger.info("Reconcile Succeeded");
-		KubernetesApiResponse<V1alpha1Spreadsheet> update = status.updateStatus(spreadsheet,
-				V1alpha1Spreadsheet::getStatus);
-		if (!update.isSuccess()) {
-			logger.warn("Failed to update status");
 		}
 		return new Result(false);
 	}

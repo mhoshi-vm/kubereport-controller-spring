@@ -8,7 +8,6 @@ import java.util.Map;
 
 public interface Aggregator {
 
-	Map<String, String> exec(V1alpha1SpreadsheetSpec spreadsheetSpec,
-			V1alpha1SpreadsheetStatusAggregated statusAggregated);
+	Map<String, String> exec(V1alpha1Spreadsheet spreadsheet);
 
 }

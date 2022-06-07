@@ -23,10 +23,12 @@ public class AggregatorImpl implements Aggregator {
 	}
 
 	@Override
-	public Map<String, String> exec(V1alpha1SpreadsheetSpec spreadsheetSpec,
-			V1alpha1SpreadsheetStatusAggregated statusAggregated) {
+	public Map<String, String> exec(V1alpha1Spreadsheet spreadsheet) {
 		Map<String, String> aggregatorList = new HashMap<>();
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+
+		V1alpha1SpreadsheetSpec spreadsheetSpec = spreadsheet.getSpec();
+		V1alpha1SpreadsheetStatusAggregated statusAggregated = spreadsheet.getStatus().getAggregated();
 
 		statusAggregated.setStartedAt(simpleDateFormat.format(new Date()));
 		statusAggregated.setSuccess("false");
