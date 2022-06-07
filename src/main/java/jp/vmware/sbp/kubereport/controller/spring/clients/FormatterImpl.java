@@ -40,7 +40,6 @@ public class FormatterImpl implements Formatter {
 		}
 		spreadsheet.getStatus().getFormatted().setSuccess("true");
 		spreadsheet.getStatus().getFormatted().setUpdateAt(simpleDateFormat.format(new Date()));
-		return;
 	}
 
 }

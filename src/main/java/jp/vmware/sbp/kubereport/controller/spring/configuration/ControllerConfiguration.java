@@ -57,6 +57,4 @@ public class ControllerConfiguration {
 		return sharedInformerFactory.sharedIndexInformerFor(genericApi, V1alpha1Spreadsheet.class, 0);
 	}
 
-
-
 }
