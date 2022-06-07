@@ -23,7 +23,8 @@ public class AggregatorImpl implements Aggregator {
 	}
 
 	@Override
-	public Map<String, String> exec(V1alpha1SpreadsheetSpec spreadsheetSpec, V1alpha1SpreadsheetStatusAggregated statusAggregated) {
+	public Map<String, String> exec(V1alpha1SpreadsheetSpec spreadsheetSpec,
+			V1alpha1SpreadsheetStatusAggregated statusAggregated) {
 		Map<String, String> aggregatorList = new HashMap<>();
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
