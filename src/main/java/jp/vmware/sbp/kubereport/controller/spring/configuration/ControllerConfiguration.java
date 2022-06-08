@@ -23,7 +23,6 @@ public class ControllerConfiguration {
 	public CommandLineRunner commandLineRunner(SharedInformerFactory sharedInformerFactory,
 			Controller spreadsheetController) {
 		return args -> {
-
 			sharedInformerFactory.startAllRegisteredInformers();
 			spreadsheetController.run();
 		};

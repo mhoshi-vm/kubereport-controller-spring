@@ -93,6 +93,7 @@ public class SpreadsheetReconciler implements Reconciler {
 				logger.warn("Failed to update status");
 			}
 		}
+
 		return new Result(false);
 	}
 
