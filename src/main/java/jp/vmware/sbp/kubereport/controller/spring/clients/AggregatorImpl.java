@@ -33,15 +33,15 @@ public class AggregatorImpl implements Aggregator {
 
 		try {
 			List<String> resources = new ArrayList<>();
-			if(spreadsheetSpec.getScrapeResources() != null){
+			if (spreadsheetSpec.getScrapeResources() != null) {
 				resources = spreadsheetSpec.getScrapeResources();
 			}
 			for (String resource : resources) {
 
 				try {
 					String resourceUrl = Constants.KUBERNETES.get(resource);
-					if (resourceUrl == null){
-						throw new Exception("Resource "+ resource +" does not exist");
+					if (resourceUrl == null) {
+						throw new Exception("Resource " + resource + " does not exist");
 					}
 					String fullUrl = url + resourceUrl;
 					aggregatorList.put(resource, restTemplate.getForObject(fullUrl, String.class));

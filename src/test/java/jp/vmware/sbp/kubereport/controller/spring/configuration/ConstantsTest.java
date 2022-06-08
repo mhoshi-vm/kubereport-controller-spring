@@ -6,9 +6,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ConstantsTest {
 
-    @Test
-    void CheckConstraints(){
-        assertEquals("/api/v1/resource/pods",Constants.KUBERNETES.get("pod"));
-    }
+	@Test
+	void CheckConstraints() {
+		assertEquals("/api/v1/resource/pods", Constants.KUBERNETES.get("pod"));
+	}
 
 }

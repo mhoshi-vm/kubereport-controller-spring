@@ -18,77 +18,82 @@ import static org.mockito.Mockito.mock;
 
 class AggregatorImplTest {
 
-    private V1alpha1Spreadsheet spreadsheet;
+	private V1alpha1Spreadsheet spreadsheet;
 
-    RestTemplateBuilder builder;
-    RestTemplate restTemplate;
+	RestTemplateBuilder builder;
 
-    AggregatorImpl aggregator;
+	RestTemplate restTemplate;
 
-    Map<String, String> aggregated;
+	AggregatorImpl aggregator;
 
-    @BeforeEach
-    void setUp() {
+	Map<String, String> aggregated;
 
-        builder = mock(RestTemplateBuilder.class);
-        restTemplate = mock(RestTemplate.class);
+	@BeforeEach
+	void setUp() {
 
-        Mockito.when(builder.build()).thenReturn(restTemplate);
+		builder = mock(RestTemplateBuilder.class);
+		restTemplate = mock(RestTemplate.class);
 
-        aggregator = new AggregatorImpl(builder);
-        aggregated = new HashMap<>();
+		Mockito.when(builder.build()).thenReturn(restTemplate);
 
-        spreadsheet = new V1alpha1Spreadsheet();
-        V1alpha1SpreadsheetSpec spreadsheetSpec = new V1alpha1SpreadsheetSpec();
-        V1alpha1SpreadsheetStatus spreadsheetStatus = new V1alpha1SpreadsheetStatus();
-        V1alpha1SpreadsheetStatusAggregated spreadsheetStatusAggregated = new V1alpha1SpreadsheetStatusAggregated();
-        V1alpha1SpreadsheetStatusFormatted spreadsheetStatusFormatted = new V1alpha1SpreadsheetStatusFormatted();
+		aggregator = new AggregatorImpl(builder);
+		aggregated = new HashMap<>();
 
-        spreadsheetStatus.setAggregated(spreadsheetStatusAggregated);
-        spreadsheetStatus.setFormatted(spreadsheetStatusFormatted);
-        spreadsheet.setStatus(spreadsheetStatus);
-        spreadsheet.setSpec(spreadsheetSpec);
-    }
+		spreadsheet = new V1alpha1Spreadsheet();
+		V1alpha1SpreadsheetSpec spreadsheetSpec = new V1alpha1SpreadsheetSpec();
+		V1alpha1SpreadsheetStatus spreadsheetStatus = new V1alpha1SpreadsheetStatus();
+		V1alpha1SpreadsheetStatusAggregated spreadsheetStatusAggregated = new V1alpha1SpreadsheetStatusAggregated();
+		V1alpha1SpreadsheetStatusFormatted spreadsheetStatusFormatted = new V1alpha1SpreadsheetStatusFormatted();
 
-    @Test
-    void execSuccess() {
+		spreadsheetStatus.setAggregated(spreadsheetStatusAggregated);
+		spreadsheetStatus.setFormatted(spreadsheetStatusFormatted);
+		spreadsheet.setStatus(spreadsheetStatus);
+		spreadsheet.setSpec(spreadsheetSpec);
+	}
 
-        V1alpha1SpreadsheetSpec spreadsheetSpec = spreadsheet.getSpec();
-        Mockito.when(restTemplate.getForObject("http://hoge" + Constants.KUBERNETES.get("pod"),String.class)).thenReturn("aaaa");
+	@Test
+	void execSuccess() {
 
-        spreadsheetSpec.setKubeAggregatorURL("http://hoge");
-        List<String> resources = new ArrayList<String>();
-        resources.add("pod");
-        spreadsheetSpec.setScrapeResources(resources);
+		V1alpha1SpreadsheetSpec spreadsheetSpec = spreadsheet.getSpec();
+		Mockito.when(restTemplate.getForObject("http://hoge" + Constants.KUBERNETES.get("pod"), String.class))
+				.thenReturn("aaaa");
 
-        aggregated =  aggregator.exec(spreadsheet);
-        assertEquals("true", spreadsheet.getStatus().getAggregated().getSuccess());
-    }
+		assert spreadsheetSpec != null;
+		spreadsheetSpec.setKubeAggregatorURL("http://hoge");
+		List<String> resources = new ArrayList<>();
+		resources.add("pod");
+		spreadsheetSpec.setScrapeResources(resources);
 
-    @Test
-    void execFailed() {
+		aggregated = aggregator.exec(spreadsheet);
+		assertEquals("true", spreadsheet.getStatus().getAggregated().getSuccess());
+	}
 
-        V1alpha1SpreadsheetSpec spreadsheetSpec = spreadsheet.getSpec();
+	@Test
+	void execFailed() {
 
-        spreadsheetSpec.setKubeAggregatorURL("http://hoge");
-        List<String> resources = new ArrayList<String>();
-        resources.add("aaa");
-        spreadsheetSpec.setScrapeResources(resources);
+		V1alpha1SpreadsheetSpec spreadsheetSpec = spreadsheet.getSpec();
 
-        aggregator.exec(spreadsheet);
-        aggregated =  aggregator.exec(spreadsheet);
-        assertEquals("false", spreadsheet.getStatus().getAggregated().getSuccess());
-        assertEquals("java.lang.Exception: Resource aaa does not exist", spreadsheet.getStatus().getAggregated().getError());
-    }
+		spreadsheetSpec.setKubeAggregatorURL("http://hoge");
+		List<String> resources = new ArrayList<>();
+		resources.add("aaa");
+		spreadsheetSpec.setScrapeResources(resources);
 
-    @Test
-    void nullResource() {
+		aggregator.exec(spreadsheet);
+		aggregated = aggregator.exec(spreadsheet);
+		assertEquals("false", spreadsheet.getStatus().getAggregated().getSuccess());
+		assertEquals("java.lang.Exception: Resource aaa does not exist",
+				spreadsheet.getStatus().getAggregated().getError());
+	}
 
-        V1alpha1SpreadsheetSpec spreadsheetSpec = spreadsheet.getSpec();
+	@Test
+	void nullResource() {
 
-        spreadsheetSpec.setKubeAggregatorURL("http://hoge");
-        aggregator.exec(spreadsheet);
-        aggregated =  aggregator.exec(spreadsheet);
-        assertTrue(aggregated.isEmpty());
-    }
+		V1alpha1SpreadsheetSpec spreadsheetSpec = spreadsheet.getSpec();
+
+		spreadsheetSpec.setKubeAggregatorURL("http://hoge");
+		aggregator.exec(spreadsheet);
+		aggregated = aggregator.exec(spreadsheet);
+		assertTrue(aggregated.isEmpty());
+	}
+
 }

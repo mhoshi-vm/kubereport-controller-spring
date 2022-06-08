@@ -30,8 +30,8 @@ public class FormatterImpl implements Formatter {
 
 				try {
 					String resourceUrl = Constants.KUBERNETES.get(key);
-					if (resourceUrl == null){
-						throw new Exception("Resource "+ key +" does not exist");
+					if (resourceUrl == null) {
+						throw new Exception("Resource " + key + " does not exist");
 					}
 					String fullUrl = url + resourceUrl;
 					restTemplate.postForObject(fullUrl, aggregated.get(key), String.class);
