@@ -46,8 +46,9 @@ public class ControllerConfiguration {
 	}
 
 	@Bean
-	public SharedIndexInformer<V1alpha1Spreadsheet> spreadsheetSharedIndexInformer(SharedInformerFactory sharedInformerFactory,
-																				   GenericKubernetesApi<V1alpha1Spreadsheet, V1alpha1SpreadsheetList> spreadsheetApi) {
+	public SharedIndexInformer<V1alpha1Spreadsheet> spreadsheetSharedIndexInformer(ApiClient apiClient,
+			SharedInformerFactory sharedInformerFactory,
+			GenericKubernetesApi<V1alpha1Spreadsheet, V1alpha1SpreadsheetList> spreadsheetApi) {
 		return sharedInformerFactory.sharedIndexInformerFor(spreadsheetApi, V1alpha1Spreadsheet.class, 0);
 	}
 
