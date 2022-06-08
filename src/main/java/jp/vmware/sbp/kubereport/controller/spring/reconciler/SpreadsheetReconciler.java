@@ -4,7 +4,6 @@ import io.kubernetes.client.extended.controller.reconciler.Reconciler;
 import io.kubernetes.client.extended.controller.reconciler.Request;
 import io.kubernetes.client.extended.controller.reconciler.Result;
 import io.kubernetes.client.informer.SharedIndexInformer;
-import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
 import io.kubernetes.client.util.generic.KubernetesApiResponse;
@@ -23,7 +22,7 @@ import java.util.Objects;
 @Component
 public class SpreadsheetReconciler implements Reconciler {
 
-	private final SharedInformer<V1alpha1Spreadsheet> spreadsheetSharedInformer;
+	private final SharedIndexInformer<V1alpha1Spreadsheet> spreadsheetSharedInformer;
 
 	private final GenericKubernetesApi<V1alpha1Spreadsheet, V1alpha1SpreadsheetList> spreadsheetApi;
 
@@ -40,6 +39,7 @@ public class SpreadsheetReconciler implements Reconciler {
 		this.spreadsheetApi = spreadsheetApi;
 		this.aggregator = aggregator;
 		this.formatter = formatter;
+
 		this.spreadsheetLister = new Lister<>(spreadsheetSharedInformer.getIndexer());
 	}
 
@@ -61,6 +61,7 @@ public class SpreadsheetReconciler implements Reconciler {
 
 		V1alpha1Spreadsheet spreadsheet = spreadsheetLister.get(namespace + "/" + name);
 		try {
+			;
 			V1alpha1SpreadsheetStatus spreadsheetStatus = spreadsheet.getStatus();
 
 			spreadsheetStatus.setFriendlyDescription("Reconciling");
