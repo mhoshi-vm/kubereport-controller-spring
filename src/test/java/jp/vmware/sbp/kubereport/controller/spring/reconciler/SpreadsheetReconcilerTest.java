@@ -11,13 +11,11 @@ import jp.vmware.sbp.kubereport.controller.spring.clients.AggregatorImpl;
 import jp.vmware.sbp.kubereport.controller.spring.clients.Formatter;
 import jp.vmware.sbp.kubereport.controller.spring.clients.FormatterImpl;
 import jp.vmware.sbp.kubereport.controller.spring.models.*;
-import jp.vmware.sbp.kubereport.controller.spring.reconciler.utils.TestRestAPI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -36,9 +34,6 @@ class SpreadsheetReconcilerTest {
 
 	@LocalServerPort
 	private int port;
-
-	@Autowired
-	TestRestAPI testRestAPI;
 
 	@MockBean
 	CommandLineRunner commandLineRunner;
@@ -62,14 +57,6 @@ class SpreadsheetReconcilerTest {
 
 	@BeforeEach
 	void setup() {
-
-	}
-
-	@Test
-	void reconcile() {
-
-		Request request = new Request("hoge", "hoge");
-
 		List<String> resources = new ArrayList<>();
 		resources.add("pod");
 
@@ -89,9 +76,12 @@ class SpreadsheetReconcilerTest {
 
 		when(update.isSuccess()).thenReturn(true);
 		when(spreadsheetApi.updateStatus(any(), any())).thenReturn(update);
+	}
 
+	@Test
+	void reconcile() {
+		Request request = new Request("hoge", "hoge");
 		spreadsheetReconciler.reconcile(request);
-
 	}
 
 	V1alpha1Spreadsheet newSpreadsheet(List<String> resources) {

@@ -11,7 +11,7 @@ public class TestRestAPI {
 
 	@GetMapping("/api/v1/resource/pods")
 	public String Aggregator() {
-		return "aaaaaa";
+		return "{ \"foo\": \"bar\" }";
 	}
 
 	@PostMapping(value = "/api/v1/resource/pods", produces = MediaType.APPLICATION_JSON_VALUE)
