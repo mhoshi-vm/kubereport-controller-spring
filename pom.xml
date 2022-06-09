@@ -8,11 +8,11 @@
         <version>2.7.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.example</groupId>
+    <groupId>jp.vmware.sbp</groupId>
     <artifactId>kubereport-controller-spring</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>kubereport-controller-spring</name>
-    <description>Demo project for Spring Boot</description>
+    <description>Kubereport Controller built by Spring Boot</description>
     <properties>
         <java.version>11</java.version>
     </properties>
@@ -37,6 +37,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -58,6 +62,11 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <image>
+                        <name>ghcr.io/tanzu-japan/${project.artifactId}:${project.version}</name>
+                    </image>
+                </configuration>
             </plugin>
         </plugins>
     </build>

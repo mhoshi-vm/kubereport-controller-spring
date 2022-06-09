@@ -1,0 +1,6 @@
+apiVersion: sbp.vmware.jp/v1alpha1
+kind: Spreadsheet
+metadata:
+  name: spreadsheet-sample
+spec:
+  kubeAggregatorURL: http://aggregator:1089

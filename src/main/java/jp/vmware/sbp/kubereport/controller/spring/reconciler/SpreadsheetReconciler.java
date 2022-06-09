@@ -9,13 +9,12 @@ import io.kubernetes.client.util.generic.GenericKubernetesApi;
 import io.kubernetes.client.util.generic.KubernetesApiResponse;
 import jp.vmware.sbp.kubereport.controller.spring.clients.Aggregator;
 import jp.vmware.sbp.kubereport.controller.spring.clients.Formatter;
-import jp.vmware.sbp.kubereport.controller.spring.models.V1alpha1Spreadsheet;
-import jp.vmware.sbp.kubereport.controller.spring.models.V1alpha1SpreadsheetList;
-import jp.vmware.sbp.kubereport.controller.spring.models.V1alpha1SpreadsheetStatus;
+import jp.vmware.sbp.kubereport.controller.spring.models.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 
@@ -64,6 +63,15 @@ public class SpreadsheetReconciler implements Reconciler {
 
 			V1alpha1SpreadsheetStatus spreadsheetStatus = spreadsheet.getStatus();
 
+			if (spreadsheetStatus == null) {
+				spreadsheetStatus = new V1alpha1SpreadsheetStatus();
+				V1alpha1SpreadsheetStatusAggregated spreadsheetStatusAggregated = new V1alpha1SpreadsheetStatusAggregated();
+				V1alpha1SpreadsheetStatusFormatted spreadsheetStatusFormatted = new V1alpha1SpreadsheetStatusFormatted();
+				spreadsheetStatus.setAggregated(spreadsheetStatusAggregated);
+				spreadsheetStatus.setFormatted(spreadsheetStatusFormatted);
+				spreadsheet.setStatus(spreadsheetStatus);
+			}
+
 			spreadsheetStatus.setFriendlyDescription("Reconciling");
 
 			logger.info("Starting aggregation call");
@@ -72,7 +80,7 @@ public class SpreadsheetReconciler implements Reconciler {
 			if (Objects.equals(spreadsheet.getStatus().getAggregated().getSuccess(), "false")) {
 				spreadsheetStatus.setFriendlyDescription("Reconcile Failed");
 				logger.warn("Reconcile Failed : " + spreadsheet.getStatus().getAggregated().getError());
-				return new Result(true);
+				return new Result(true, Duration.ofSeconds(60));
 			}
 
 			logger.info("Starting formatter call");
@@ -81,7 +89,7 @@ public class SpreadsheetReconciler implements Reconciler {
 			if (Objects.equals(spreadsheet.getStatus().getFormatted().getSuccess(), "false")) {
 				spreadsheetStatus.setFriendlyDescription("Reconcile Failed");
 				logger.warn("Reconcile Failed : " + spreadsheet.getStatus().getFormatted().getError());
-				return new Result(true);
+				return new Result(true, Duration.ofSeconds(60));
 			}
 			spreadsheet.getStatus().setFriendlyDescription("Reconcile Succeeded");
 			logger.info("Reconcile Succeeded");

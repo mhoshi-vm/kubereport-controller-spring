@@ -55,6 +55,8 @@ spec:
                     URL.
                   type: string
                 scrapeResources:
+                  default:
+                    - pod
                   description: ScrapeResources is an list of resources to scrape of
                     Spreadsheet.
                   items:

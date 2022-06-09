@@ -72,6 +72,14 @@ class SpreadsheetReconcilerTest {
 
 		headers = testRestAPI.getHeaders();
 
+		RestTemplateBuilder restTemplate = new RestTemplateBuilder();
+		aggregator = new AggregatorImpl(restTemplate);
+		formatter = new FormatterImpl(restTemplate);
+
+	}
+
+	@Test
+	void reconcile() {
 		List<String> resources = new ArrayList<>();
 		resources.add("pod");
 
@@ -81,20 +89,38 @@ class SpreadsheetReconcilerTest {
 		v1alpha1SpreadsheetCache.add(spreadsheet);
 
 		when(spreadsheetSharedInformer.getIndexer()).thenReturn(v1alpha1SpreadsheetCache);
-
-		RestTemplateBuilder restTemplate = new RestTemplateBuilder();
-		aggregator = new AggregatorImpl(restTemplate);
-		formatter = new FormatterImpl(restTemplate);
-
+		when(update.isSuccess()).thenReturn(true);
+		when(spreadsheetApi.updateStatus(any(), any())).thenReturn(update);
 		spreadsheetReconciler = new SpreadsheetReconciler(spreadsheetSharedInformer, spreadsheetApi, aggregator,
 				formatter);
 
-		when(update.isSuccess()).thenReturn(true);
-		when(spreadsheetApi.updateStatus(any(), any())).thenReturn(update);
+		Request request = new Request("hoge", "hoge");
+		spreadsheetReconciler.reconcile(request);
+
+		assertEquals("true", spreadsheet.getStatus().getAggregated().getSuccess());
+		assertEquals("true", spreadsheet.getStatus().getFormatted().getSuccess());
+		assertEquals("Reconcile Succeeded", spreadsheet.getStatus().getFriendlyDescription());
+		assertEquals("application/json", headers.get("content-type"));
+		assertEquals("{ \"foo\": \"bar\" }", headers.get("request-body"));
+		assertNotNull(headers.get("content-length"));
 	}
 
 	@Test
-	void reconcile() {
+	void reconcileNoStatus() {
+		List<String> resources = new ArrayList<>();
+		resources.add("pod");
+
+		spreadsheet = newSpreadsheetNoStatus(resources);
+
+		v1alpha1SpreadsheetCache = new Cache<>();
+		v1alpha1SpreadsheetCache.add(spreadsheet);
+
+		when(spreadsheetSharedInformer.getIndexer()).thenReturn(v1alpha1SpreadsheetCache);
+		when(update.isSuccess()).thenReturn(true);
+		when(spreadsheetApi.updateStatus(any(), any())).thenReturn(update);
+		spreadsheetReconciler = new SpreadsheetReconciler(spreadsheetSharedInformer, spreadsheetApi, aggregator,
+				formatter);
+
 		Request request = new Request("hoge", "hoge");
 		spreadsheetReconciler.reconcile(request);
 
@@ -112,6 +138,12 @@ class SpreadsheetReconcilerTest {
 						.kubeFormatterURL("http://localhost:" + port).scrapeResources(resources))
 				.status(new V1alpha1SpreadsheetStatus().aggregated(new V1alpha1SpreadsheetStatusAggregated())
 						.formatted(new V1alpha1SpreadsheetStatusFormatted()));
+	}
+
+	V1alpha1Spreadsheet newSpreadsheetNoStatus(List<String> resources) {
+		return new V1alpha1Spreadsheet().metadata(new V1ObjectMeta().name("hoge").namespace("hoge"))
+				.spec(new V1alpha1SpreadsheetSpec().kubeAggregatorURL("http://localhost:" + port)
+						.kubeFormatterURL("http://localhost:" + port).scrapeResources(resources));
 	}
 
 }
