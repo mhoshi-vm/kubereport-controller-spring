@@ -97,6 +97,7 @@ class SpreadsheetReconcilerTest {
 	void reconcile() {
 		Request request = new Request("hoge", "hoge");
 		spreadsheetReconciler.reconcile(request);
+
 		assertEquals("true", spreadsheet.getStatus().getAggregated().getSuccess());
 		assertEquals("true", spreadsheet.getStatus().getFormatted().getSuccess());
 		assertEquals("Reconcile Succeeded", spreadsheet.getStatus().getFriendlyDescription());
