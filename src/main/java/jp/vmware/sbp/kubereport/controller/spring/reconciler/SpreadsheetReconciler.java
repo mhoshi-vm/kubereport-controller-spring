@@ -61,7 +61,7 @@ public class SpreadsheetReconciler implements Reconciler {
 
 		V1alpha1Spreadsheet spreadsheet = spreadsheetLister.get(namespace + "/" + name);
 		try {
-			;
+
 			V1alpha1SpreadsheetStatus spreadsheetStatus = spreadsheet.getStatus();
 
 			spreadsheetStatus.setFriendlyDescription("Reconciling");
@@ -83,7 +83,7 @@ public class SpreadsheetReconciler implements Reconciler {
 				logger.warn("Reconcile Failed : " + spreadsheet.getStatus().getFormatted().getError());
 				return new Result(true);
 			}
-			spreadsheet.getStatus().setFriendlyDescription("Reconcile Succeded");
+			spreadsheet.getStatus().setFriendlyDescription("Reconcile Succeeded");
 			logger.info("Reconcile Succeeded");
 
 		}

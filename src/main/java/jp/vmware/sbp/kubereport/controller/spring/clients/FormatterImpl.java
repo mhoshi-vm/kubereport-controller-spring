@@ -3,6 +3,9 @@ package jp.vmware.sbp.kubereport.controller.spring.clients;
 import jp.vmware.sbp.kubereport.controller.spring.configuration.Constants;
 import jp.vmware.sbp.kubereport.controller.spring.models.V1alpha1Spreadsheet;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -34,7 +37,12 @@ public class FormatterImpl implements Formatter {
 						throw new Exception("Resource " + key + " does not exist");
 					}
 					String fullUrl = url + resourceUrl;
-					restTemplate.postForObject(fullUrl, aggregated.get(key), String.class);
+
+					HttpHeaders headers = new HttpHeaders();
+					headers.setContentType(MediaType.APPLICATION_JSON);
+
+					HttpEntity<String> entity = new HttpEntity<String>(aggregated.get(key), headers);
+					restTemplate.postForObject(fullUrl, entity, String.class);
 				}
 				catch (Exception e) {
 					spreadsheet.getStatus().getFormatted().setError(e.toString());

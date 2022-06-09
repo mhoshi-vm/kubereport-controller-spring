@@ -11,11 +11,13 @@ import jp.vmware.sbp.kubereport.controller.spring.clients.AggregatorImpl;
 import jp.vmware.sbp.kubereport.controller.spring.clients.Formatter;
 import jp.vmware.sbp.kubereport.controller.spring.clients.FormatterImpl;
 import jp.vmware.sbp.kubereport.controller.spring.models.*;
+import jp.vmware.sbp.kubereport.controller.spring.reconciler.utils.TestRestAPI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -24,7 +26,10 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -55,12 +60,22 @@ class SpreadsheetReconcilerTest {
 
 	Cache<V1alpha1Spreadsheet> v1alpha1SpreadsheetCache;
 
+	Map<String, String> headers;
+
+	V1alpha1Spreadsheet spreadsheet;
+
+	@Autowired
+	TestRestAPI testRestAPI;
+
 	@BeforeEach
 	void setup() {
+
+		headers = testRestAPI.getHeaders();
+
 		List<String> resources = new ArrayList<>();
 		resources.add("pod");
 
-		var spreadsheet = newSpreadsheet(resources);
+		spreadsheet = newSpreadsheet(resources);
 
 		v1alpha1SpreadsheetCache = new Cache<>();
 		v1alpha1SpreadsheetCache.add(spreadsheet);
@@ -82,6 +97,12 @@ class SpreadsheetReconcilerTest {
 	void reconcile() {
 		Request request = new Request("hoge", "hoge");
 		spreadsheetReconciler.reconcile(request);
+		assertEquals("true", spreadsheet.getStatus().getAggregated().getSuccess());
+		assertEquals("true", spreadsheet.getStatus().getFormatted().getSuccess());
+		assertEquals("Reconcile Succeeded", spreadsheet.getStatus().getFriendlyDescription());
+		assertEquals("application/json", headers.get("content-type"));
+		assertEquals("{ \"foo\": \"bar\" }", headers.get("request-body"));
+		assertNotNull(headers.get("content-length"));
 	}
 
 	V1alpha1Spreadsheet newSpreadsheet(List<String> resources) {
